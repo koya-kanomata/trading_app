@@ -1,0 +1,52 @@
+{
+  "capital_jpy": 1000000,
+  "risk_per_trade": 0.007,
+  "daily_loss_limit_jpy": 20000,
+  "max_new_positions_per_day": 3,
+  "holding_days_max": 10,
+  "min_holding_days": 2,
+  "stop_loss_pct": 0.02,
+  "take_profit_pct": 0.04,
+  "min_probability": 0.60,
+  "timezone": "Asia/Tokyo",
+  "run_time": "07:45",
+  "broker": "paper",
+  "watchlist_csv": "watchlist_prime_large100.csv",
+  "positions_csv": "positions.csv",
+  "fills_csv": "fills.csv",
+  "order_queue_csv": "order_queue.csv",
+  "audit_log_csv": "audit_log.csv",
+  "kill_switch_file": "KILL_SWITCH",
+  "output_orders_csv": "orders_for_sbi.csv",
+  "output_report_md": "daily_report.md",
+  "sbi_env": {
+    "user": "SBI_USER",
+    "password": "SBI_PASSWORD",
+    "token": "SBI_API_TOKEN"
+  },
+  "sbi_import": {
+    "enabled": true,
+    "input_dir": "sbi_exports",
+    "positions_patterns": [
+      "*pos*.csv",
+      "*保有*.csv"
+    ],
+    "fills_patterns": [
+      "*fill*.csv",
+      "*約定*.csv",
+      "*履歴*.csv"
+    ]
+  },
+  "sbi_collect": {
+    "enabled": true,
+    "source_dir": "/mnt/c/Users/kanomata/Downloads",
+    "patterns": [
+      "*SBI*.csv",
+      "*保有*.csv",
+      "*約定*.csv",
+      "*履歴*.csv",
+      "*.csv"
+    ],
+    "max_files": 20
+  }
+}
