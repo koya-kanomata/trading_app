@@ -1,1 +1,5 @@
-.venv/n__pycache__/n*.pycnsbi_exports/*.csvn
+.venv/
+__pycache__/
+*.pyc
+sbi_exports/*.csv
+reco-web/target/

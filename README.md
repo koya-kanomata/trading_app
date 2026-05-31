@@ -6,6 +6,8 @@ This folder now includes two layers:
 
 Current default execution mode is `paper` broker for safe testing.
 
+LINE Messaging API is supported for both scheduled runs and manual runs. Set `LINE_CHANNEL_ACCESS_TOKEN` and `LINE_TO_ID` in your environment before running the scripts.
+
 ## 1) Setup
 
 ```bash
@@ -21,11 +23,56 @@ python -m pip install -r requirements.txt
 python auto_trader.py --once
 ```
 
+This is the same command you can run manually any time during the day to re-evaluate the latest state after you trade, receive fills, or update CSV files.
+
 Outputs:
 - `orders_for_sbi.csv`: candidate orders (manual backup input sheet)
 - `daily_report.md`: summary report
 - `order_queue.csv`: queued orders from the paper broker
 - `audit_log.csv`: operation history and safety events
+
+### Manual Execution Steps
+
+Use this when you want to run the system on demand instead of waiting for the morning batch.
+
+```bash
+cd /home/kanomata/develop/trading_app
+source .venv/bin/activate
+python auto_trader.py --once
+```
+
+Typical use cases:
+- after you buy or sell manually on SBI
+- after you place downloaded SBI CSV files into `sbi_exports/` or Downloads
+- when you want to re-check BUY/SELL recommendations immediately
+
+### Quick Manual Input (When SBI CSV Is Unavailable)
+
+If you cannot export SBI CSV, use `manual_trades.csv` and run `manual_sync.py`.
+
+1. Open `manual_trades.csv` and add rows.
+2. Fill columns:
+	- `trade_id`: optional (auto-generated if blank)
+	- `trade_date`: optional (`YYYY-MM-DD`, defaults to today if blank)
+	- `code`: 4-digit stock code
+	- `name`: optional but recommended
+	- `side`: `BUY` or `SELL`
+	- `qty`: shares
+	- `price`: executed price
+	- `realized_pnl_jpy`: optional (use `0` for BUY)
+3. Run:
+
+```bash
+cd /home/kanomata/develop/trading_app
+source .venv/bin/activate
+python manual_sync.py
+```
+
+This updates `fills.csv` and `positions.csv` automatically.
+
+Notes:
+- Processed `trade_id` values are tracked in `manual_applied_ids.csv` to prevent duplicate imports.
+- If you leave `trade_id` blank, a deterministic `AUTO-...` ID is generated from trade fields.
 
 ## 3) Daemon Mode (WSL Always-On)
 
@@ -104,3 +151,92 @@ If broker API is not connected yet, use `orders_for_sbi.csv`:
 3. Limit price from `entry_limit`
 4. Reverse stop from `stop_loss`
 5. TP target from `take_profit`
+
+## 9) Which Script/File To Use (Operations Quick Guide)
+
+Use this section as a daily checklist.
+
+- `auto_trader.py` (main runner)
+	- Purpose: production batch run.
+	- When: scheduled by cron each weekday morning, or manual one-off run.
+	- What it does: imports SBI CSVs, generates BUY candidates, evaluates SELL signals for OPEN positions, writes outputs/logs.
+
+- `run_daily.sh` (cron entry point)
+	- Purpose: stable shell entry for scheduler.
+	- When: called by cron.
+	- What it does: activates venv, runs importer, runs `auto_trader.py --once`.
+
+- `semi_auto.py` (strategy logic module)
+	- Purpose: shared strategy/feature/scoring logic.
+	- When: mostly called from `auto_trader.py`.
+	- Note: standalone `main()` is a helper path; day-to-day operations should use `auto_trader.py`.
+
+- `sbi_importer.py`
+	- Purpose: normalize exported SBI position/fill CSVs into internal files.
+	- When: manual import tests or invoked by `run_daily.sh`/`auto_trader.py`.
+
+- `orders_for_sbi.csv` (manual order sheet)
+	- Purpose: action list for manual order placement in SBI.
+	- When: after each batch run.
+	- How to read:
+		- `side=BUY`: new entry candidates.
+		- `side=SELL`: exit signals for existing OPEN positions.
+
+- `daily_report.md`
+	- Purpose: rationale/summary.
+	- When: before sending orders.
+	- Contains: `BUY Candidates` and `SELL Signals` sections.
+
+- `audit_log.csv` / `cron.log`
+	- Purpose: execution proof and troubleshooting.
+	- When: to answer "Did it run today?" and to diagnose failures.
+
+
+- LINE Messaging API
+	- Purpose: send a completion or failure message for both batch and manual runs.
+	- When: every `auto_trader.py --once` run and every daemon cycle.
+	- Setup: export `LINE_CHANNEL_ACCESS_TOKEN` and `LINE_TO_ID` in your shell or profile before running.
+	- Message contents: run status, BUY/SELL counts, and a short list of symbols.
+
+### Daily Workflow (Recommended)
+
+1. Wait for scheduled run (07:45 JST on weekdays).
+2. Check `audit_log.csv` or `cron.log` to confirm completion.
+3. Open `orders_for_sbi.csv`.
+4. Place `SELL` rows first (risk reduction), then `BUY` rows.
+5. Confirm reasons in `daily_report.md`.
+6. Ensure latest SBI exports are available so next cycle can sync positions/fills.
+
+Note: current default operation is batch-based (not real-time). Intraday price shocks can happen after 07:45 output; always use protective stop rules in broker orders.
+
+## 10) Web Dashboard (Spring Boot)
+
+If CLI/CSV operation feels hard, use the web dashboard:
+
+- Path: `reco-web/`
+- Shows daily recommendations from `orders_for_sbi.csv`
+- Displays BUY/SELL tables with code, qty, limit, stop
+- Supports manual run button (`auto_trader.py --once`)
+- Runs daily by scheduler at 07:45 JST
+
+### Start
+
+```bash
+cd /home/kanomata/develop/trading_app/reco-web
+./mvnw spring-boot:run
+```
+
+If `mvnw` does not exist, use installed Maven:
+
+```bash
+cd /home/kanomata/develop/trading_app/reco-web
+mvn spring-boot:run
+```
+
+Open:
+
+- `http://localhost:8000`
+
+Settings are in:
+
+- `reco-web/src/main/resources/application.yml`

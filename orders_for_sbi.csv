@@ -1,1 +1,3 @@
 trade_date,broker,code,name,side,order_type,qty,entry_limit,stop_loss,take_profit,holding_days_max,probability,score,estimated_max_loss_jpy,memo
+2026-05-31,SBI,4902,Konica Minolta,BUY,LIMIT,100,609.6,597.4,634.0,10,0.7601,0.6885,1219,Set reverse stop order in SBI
+2026-05-31,SBI,7201,Nissan Motor,SELL,LIMIT,200,396.8,,,10,,,0,TAKE_PROFIT; held=6bd; rsi=66.5

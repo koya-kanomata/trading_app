@@ -4,6 +4,7 @@ import argparse
 import csv
 import time
 from datetime import datetime
+import os
 from pathlib import Path
 from typing import Dict, Set
 from zoneinfo import ZoneInfo
@@ -11,10 +12,12 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from broker_adapter import OrderRequest, build_broker
+from line_notify import send_line_notify
 from sbi_collector import collect_exports
 from sbi_importer import import_sbi_exports
 from semi_auto import (
     compute_candidates,
+    evaluate_sell_candidates,
     export_for_sbi,
     export_report,
     load_config,
@@ -30,15 +33,23 @@ def ensure_csv(path: Path, columns: list[str]) -> None:
 
 
 def load_open_position_codes(base: Path, config: Dict) -> Set[str]:
+    df = load_open_positions(base, config)
+    if df.empty:
+        return set()
+    return set(df["code"].astype(str).str.zfill(4).tolist())
+
+
+def load_open_positions(base: Path, config: Dict) -> pd.DataFrame:
     path = base / str(config["positions_csv"])
     ensure_csv(path, ["code", "name", "qty", "entry_price", "entry_date", "status"])
     df = pd.read_csv(path, dtype={"code": str})
     if df.empty:
-        return set()
+        return pd.DataFrame(columns=["code", "name", "qty", "entry_price", "entry_date", "status"])
     if "status" not in df.columns:
         df["status"] = "OPEN"
     open_df = df[df["status"].astype(str).str.upper() == "OPEN"].copy()
-    return set(open_df["code"].astype(str).str.zfill(4).tolist())
+    open_df["code"] = open_df["code"].astype(str).str.zfill(4)
+    return open_df
 
 
 def today_realized_pnl(base: Path, config: Dict, now: datetime) -> float:
@@ -73,6 +84,88 @@ def append_audit(base: Path, config: Dict, row: Dict) -> None:
         if new_file:
             writer.writeheader()
         writer.writerow({k: row.get(k, "") for k in fields})
+
+
+def build_order_summary(rows: pd.DataFrame, limit: int = 5) -> str:
+    if rows.empty:
+        return "なし"
+
+    items = []
+    for _, row in rows.head(limit).iterrows():
+        items.append(f"{str(row['code']).zfill(4)} {row['name']} {int(row['qty'])}株")
+
+    remaining = len(rows) - min(len(rows), limit)
+    if remaining > 0:
+        items.append(f"...他{remaining}件")
+    return " / ".join(items)
+
+
+def notify_line(base: Path, config: Dict, title: str, body: str) -> None:
+    line_cfg = config.get("line_messaging", {})
+    if not bool(line_cfg.get("enabled", True)):
+        return
+
+    token_env = str(line_cfg.get("channel_token_env", "LINE_CHANNEL_ACCESS_TOKEN"))
+    to_env = str(line_cfg.get("to_env", "LINE_TO_ID"))
+    token = os.getenv(token_env, "")
+    to = os.getenv(to_env, "")
+    if not token or not to:
+        append_audit(
+            base,
+            config,
+            {
+                "timestamp": datetime.now(ZoneInfo(str(config.get("timezone", "Asia/Tokyo")))).isoformat(timespec="seconds"),
+                "event": "LINE_MSG_SKIP",
+                "status": "SKIPPED",
+                "message": f"Missing env token={token_env} to={to_env}",
+                "run_mode": "",
+            },
+        )
+        return
+
+    try:
+        status, response_body = send_line_notify(token, to, f"{title}\n{body}")
+        append_audit(
+            base,
+            config,
+            {
+                "timestamp": datetime.now(ZoneInfo(str(config.get("timezone", "Asia/Tokyo")))).isoformat(timespec="seconds"),
+                "event": "LINE_MSG",
+                "status": "OK" if 200 <= int(status) < 300 else "ERROR",
+                "message": f"http={status} {response_body}",
+                "run_mode": "",
+            },
+        )
+    except Exception as exc:  # noqa: BLE001
+        append_audit(
+            base,
+            config,
+            {
+                "timestamp": datetime.now(ZoneInfo(str(config.get("timezone", "Asia/Tokyo")))).isoformat(timespec="seconds"),
+                "event": "LINE_MSG",
+                "status": "ERROR",
+                "message": str(exc),
+                "run_mode": "",
+            },
+        )
+
+
+def notify_cycle_success(base: Path, config: Dict, run_mode: str, picks: pd.DataFrame, sell_signals: pd.DataFrame, open_positions: pd.DataFrame) -> None:
+    title = f"Trading run {run_mode} OK"
+    body_lines = [
+        f"BUY: {len(picks)}件",
+        f"SELL: {len(sell_signals)}件",
+        f"OPEN: {len(open_positions)}件",
+        f"BUY一覧: {build_order_summary(picks)}",
+        f"SELL一覧: {build_order_summary(sell_signals)}",
+    ]
+    notify_line(base, config, title, "\n".join(body_lines))
+
+
+def notify_cycle_failure(base: Path, config: Dict, run_mode: str, exc: Exception) -> None:
+    title = f"Trading run {run_mode} FAILED"
+    body = f"{type(exc).__name__}: {exc}"
+    notify_line(base, config, title, body)
 
 
 def sync_sbi_exports(base: Path, config: Dict, now: datetime, run_mode: str) -> None:
@@ -194,15 +287,66 @@ def run_cycle(base: Path, run_mode: str) -> int:
     watch = load_watchlist(base / str(config["watchlist_csv"]))
     ranked = compute_candidates(watch, config)
 
-    open_codes = load_open_position_codes(base, config)
+    open_positions = load_open_positions(base, config)
+    open_codes = set(open_positions["code"].astype(str).str.zfill(4).tolist()) if not open_positions.empty else set()
     if not ranked.empty:
         ranked = ranked[~ranked["code"].astype(str).str.zfill(4).isin(open_codes)].copy()
 
-    picks = size_positions(ranked, config)
-    export_for_sbi(base, picks, config)
-    export_report(base, picks, config)
+    max_total_open = int(config.get("max_total_open_positions", 0) or 0)
+    remaining_slots = int(config.get("max_new_positions_per_day", 3))
+    if max_total_open > 0:
+        remaining_slots = max(0, max_total_open - len(open_positions))
+        if remaining_slots == 0:
+            append_audit(
+                base,
+                config,
+                {
+                    "timestamp": now.isoformat(timespec="seconds"),
+                    "event": "ENTRY_CAP_REACHED",
+                    "status": "SKIPPED",
+                    "message": f"open_positions={len(open_positions)} cap={max_total_open}",
+                    "run_mode": run_mode,
+                },
+            )
+
+    if ranked.empty or remaining_slots <= 0:
+        picks = pd.DataFrame()
+    else:
+        sizing_config = dict(config)
+        sizing_config["max_new_positions_per_day"] = min(int(config.get("max_new_positions_per_day", 3)), remaining_slots)
+        picks = size_positions(ranked, sizing_config)
+    sell_signals = evaluate_sell_candidates(open_positions, config)
+    export_for_sbi(base, picks, config, sell_signals)
+    export_report(base, picks, config, sell_signals)
 
     broker = build_broker(config, base)
+
+    for _, row in sell_signals.iterrows():
+        order = OrderRequest(
+            code=str(row["code"]),
+            side="SELL",
+            qty=int(row["qty"]),
+            order_type="LIMIT",
+            limit_price=float(row["exit_price"]),
+            stop_loss=0.0,
+            take_profit=0.0,
+            reason=str(row.get("memo", "SELL signal")),
+        )
+        result = broker.place_order(order)
+        append_audit(
+            base,
+            config,
+            {
+                "timestamp": now.isoformat(timespec="seconds"),
+                "event": "ORDER",
+                "code": order.code,
+                "qty": order.qty,
+                "status": result.status,
+                "message": f"side=SELL {result.message}",
+                "run_mode": run_mode,
+            },
+        )
+
     for _, row in picks.iterrows():
         order = OrderRequest(
             code=str(row["code"]),
@@ -224,7 +368,7 @@ def run_cycle(base: Path, run_mode: str) -> int:
                 "code": order.code,
                 "qty": order.qty,
                 "status": result.status,
-                "message": result.message,
+                "message": f"side=BUY {result.message}",
                 "run_mode": run_mode,
             },
         )
@@ -240,6 +384,8 @@ def run_cycle(base: Path, run_mode: str) -> int:
             "run_mode": run_mode,
         },
     )
+
+    notify_cycle_success(base, config, run_mode, picks, sell_signals, open_positions)
     return len(picks)
 
 
@@ -264,7 +410,11 @@ def run_daemon(base: Path) -> None:
             and now.minute == target_min
             and day_key != last_run_day
         ):
-            run_cycle(base, run_mode="daemon")
+            try:
+                run_cycle(base, run_mode="daemon")
+            except Exception as exc:  # noqa: BLE001
+                config = load_config(base)
+                notify_cycle_failure(base, config, "daemon", exc)
             last_run_day = day_key
         time.sleep(30)
 
@@ -276,8 +426,13 @@ def main() -> None:
 
     base = Path(__file__).resolve().parent
     if args.once:
-        count = run_cycle(base, run_mode="once")
-        print(f"Completed one cycle. picks={count}")
+        try:
+            count = run_cycle(base, run_mode="once")
+            print(f"Completed one cycle. picks={count}")
+        except Exception as exc:  # noqa: BLE001
+            config = load_config(base)
+            notify_cycle_failure(base, config, "once", exc)
+            raise
         return
 
     print("Daemon mode started. Press Ctrl+C to stop.")

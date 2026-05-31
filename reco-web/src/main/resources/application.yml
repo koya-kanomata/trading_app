@@ -1,0 +1,15 @@
+server:
+  port: 8000
+
+spring:
+  thymeleaf:
+    cache: false
+
+trading:
+  base-dir: /home/kanomata/develop/trading_app
+  run-command: bash -lc "cd /home/kanomata/develop/trading_app && source .venv/bin/activate && python auto_trader.py --once"
+  orders-csv: orders_for_sbi.csv
+  report-md: daily_report.md
+  audit-log-csv: audit_log.csv
+  schedule-cron: "0 45 7 * * MON-FRI"
+  schedule-zone: "Asia/Tokyo"

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trading Recommendation Dashboard</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<main class="container">
+    <section class="hero">
+        <h1>Daily Recommendation Dashboard</h1>
+        <p>おすすめ株、株数、指値・逆指値を毎日確認できます。</p>
+        <div class="meta">
+            <span>最終更新: <strong th:text="${lastUpdated}">-</strong></span>
+            <form th:action="@{/run-now}" method="post">
+                <button type="submit">今すぐ再計算</button>
+            </form>
+        </div>
+    </section>
+
+    <section th:if="${message}" class="alert ok" th:text="${message}"></section>
+    <section th:if="${error}" class="alert ng" th:text="${error}"></section>
+    <section th:if="${loadError}" class="alert ng" th:text="${loadError}"></section>
+
+    <section class="panel">
+        <h2>BUY 提案</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>株数</th>
+                <th>指値</th>
+                <th>逆指値</th>
+                <th>利確</th>
+                <th>メモ</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(buyRows)}">
+                <td colspan="7">本日のBUY提案はありません</td>
+            </tr>
+            <tr th:each="r : ${buyRows}">
+                <td th:text="${r.code}"></td>
+                <td th:text="${r.name}"></td>
+                <td th:text="${r.qty}"></td>
+                <td th:text="${r.entryLimit}"></td>
+                <td th:text="${r.stopLoss}"></td>
+                <td th:text="${r.takeProfit}"></td>
+                <td th:text="${r.memo}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel">
+        <h2>SELL シグナル</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>株数</th>
+                <th>目安価格</th>
+                <th>メモ</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(sellRows)}">
+                <td colspan="5">本日のSELLシグナルはありません</td>
+            </tr>
+            <tr th:each="r : ${sellRows}">
+                <td th:text="${r.code}"></td>
+                <td th:text="${r.name}"></td>
+                <td th:text="${r.qty}"></td>
+                <td th:text="${r.entryLimit}"></td>
+                <td th:text="${r.memo}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

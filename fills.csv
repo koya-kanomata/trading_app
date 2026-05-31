@@ -1,1 +1,4 @@
 fill_date,code,side,qty,price,realized_pnl_jpy
+2026-05-25,4005,BUY,100,596.4,0
+2026-05-25,7201,BUY,200,373.7,0
+2026-05-25,4005,SELL,100,591.4,-640

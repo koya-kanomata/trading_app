@@ -82,11 +82,89 @@ def fetch_features(ticker: str) -> Dict[str, float] | None:
         "ret5": float(ret5),
         "ret20": float(ret20),
         "ma_gap": float(ma_gap),
+        "ma20": float(ma20),
         "rsi14": float(rsi14),
         "vol20": float(vol20),
         "volume_ratio": float(volume_ratio),
         "entry_price": float(close.iloc[-1]),
+        "current_price": float(close.iloc[-1]),
     }
+
+
+def business_days_held(entry_date_raw: object, today: date) -> int:
+    try:
+        entry = pd.to_datetime(entry_date_raw, errors="coerce")
+        if pd.isna(entry):
+            return 0
+        start = np.datetime64(entry.date())
+        end = np.datetime64(today)
+        return int(np.busday_count(start, end) + 1)
+    except Exception:  # noqa: BLE001
+        return 0
+
+
+def evaluate_sell_candidates(positions: pd.DataFrame, config: Dict) -> pd.DataFrame:
+    if positions.empty:
+        return pd.DataFrame()
+
+    stop_loss_pct = float(config["stop_loss_pct"])
+    tp_pct = float(config["take_profit_pct"])
+    min_holding_days = int(config.get("min_holding_days", 2))
+    max_holding_days = int(config.get("holding_days_max", 10))
+    today = date.today()
+
+    signals = []
+    for _, row in positions.iterrows():
+        code = str(row.get("code", "")).zfill(4)
+        if not code:
+            continue
+
+        qty = int(pd.to_numeric(row.get("qty", 0), errors="coerce") or 0)
+        if qty <= 0:
+            continue
+
+        metrics = fetch_features(f"{code}.T")
+        if metrics is None:
+            continue
+
+        current_price = float(metrics["current_price"])
+        ma20 = float(metrics["ma20"])
+        rsi14 = float(metrics["rsi14"])
+        entry_price = float(pd.to_numeric(row.get("entry_price", 0.0), errors="coerce") or 0.0)
+        days_held = business_days_held(row.get("entry_date", ""), today)
+
+        trigger = ""
+        if entry_price > 0:
+            stop = entry_price * (1 - stop_loss_pct)
+            take_profit = entry_price * (1 + tp_pct)
+            if current_price <= stop:
+                trigger = "STOP_LOSS"
+            elif current_price >= take_profit and days_held >= min_holding_days:
+                trigger = "TAKE_PROFIT"
+
+        if not trigger and days_held >= max_holding_days:
+            trigger = "TIME_EXIT"
+
+        if not trigger and days_held >= min_holding_days and current_price < ma20 and rsi14 < 45:
+            trigger = "MOMENTUM_WEAK"
+
+        if not trigger:
+            continue
+
+        signals.append(
+            {
+                "code": code,
+                "name": str(row.get("name", "")),
+                "qty": qty,
+                "exit_price": current_price,
+                "days_held": days_held,
+                "rsi14": rsi14,
+                "trigger": trigger,
+                "memo": f"{trigger}; held={days_held}bd; rsi={rsi14:.1f}",
+            }
+        )
+
+    return pd.DataFrame(signals)
 
 
 def compute_candidates(watch: pd.DataFrame, config: Dict) -> pd.DataFrame:
@@ -139,7 +217,9 @@ def size_positions(df: pd.DataFrame, config: Dict) -> pd.DataFrame:
     budget_per_trade = capital / max_new
 
     sized = []
-    for _, row in df.head(max_new).iterrows():
+    for _, row in df.iterrows():
+        if len(sized) >= max_new:
+            break
         entry = float(row["entry_price"])
         stop = entry * (1 - stop_loss_pct)
         tp = entry * (1 + tp_pct)
@@ -171,10 +251,11 @@ def size_positions(df: pd.DataFrame, config: Dict) -> pd.DataFrame:
     return out
 
 
-def export_for_sbi(base: Path, picks: pd.DataFrame, config: Dict) -> None:
+def export_for_sbi(base: Path, picks: pd.DataFrame, config: Dict, sell_signals: pd.DataFrame | None = None) -> None:
     output_csv = base / config["output_orders_csv"]
+    sell_signals = sell_signals if sell_signals is not None else pd.DataFrame()
 
-    if picks.empty:
+    if picks.empty and sell_signals.empty:
         pd.DataFrame(
             columns=[
                 "trade_date",
@@ -197,29 +278,60 @@ def export_for_sbi(base: Path, picks: pd.DataFrame, config: Dict) -> None:
         return
 
     trade_date = str(date.today())
-    sbi = pd.DataFrame(
-        {
-            "trade_date": trade_date,
-            "broker": "SBI",
-            "code": picks["code"],
-            "name": picks["name"],
-            "side": "BUY",
-            "order_type": "LIMIT",
-            "qty": picks["qty"].astype(int),
-            "entry_limit": picks["entry_price"].round(1),
-            "stop_loss": picks["stop_price"].round(1),
-            "take_profit": picks["take_profit_price"].round(1),
-            "holding_days_max": int(config["holding_days_max"]),
-            "probability": picks["probability"].round(4),
-            "score": picks["score"].round(4),
-            "estimated_max_loss_jpy": picks["estimated_max_loss"].round(0).astype(int),
-            "memo": "Set reverse stop order in SBI",
-        }
-    )
+    frames = []
+
+    if not picks.empty:
+        frames.append(
+            pd.DataFrame(
+                {
+                    "trade_date": trade_date,
+                    "broker": "SBI",
+                    "code": picks["code"],
+                    "name": picks["name"],
+                    "side": "BUY",
+                    "order_type": "LIMIT",
+                    "qty": picks["qty"].astype(int),
+                    "entry_limit": picks["entry_price"].round(1),
+                    "stop_loss": picks["stop_price"].round(1),
+                    "take_profit": picks["take_profit_price"].round(1),
+                    "holding_days_max": int(config["holding_days_max"]),
+                    "probability": picks["probability"].round(4),
+                    "score": picks["score"].round(4),
+                    "estimated_max_loss_jpy": picks["estimated_max_loss"].round(0).astype(int),
+                    "memo": "Set reverse stop order in SBI",
+                }
+            )
+        )
+
+    if not sell_signals.empty:
+        frames.append(
+            pd.DataFrame(
+                {
+                    "trade_date": trade_date,
+                    "broker": "SBI",
+                    "code": sell_signals["code"],
+                    "name": sell_signals["name"],
+                    "side": "SELL",
+                    "order_type": "LIMIT",
+                    "qty": sell_signals["qty"].astype(int),
+                    "entry_limit": sell_signals["exit_price"].round(1),
+                    "stop_loss": "",
+                    "take_profit": "",
+                    "holding_days_max": int(config["holding_days_max"]),
+                    "probability": "",
+                    "score": "",
+                    "estimated_max_loss_jpy": 0,
+                    "memo": sell_signals["memo"],
+                }
+            )
+        )
+
+    sbi = pd.concat(frames, ignore_index=True)
     sbi.to_csv(output_csv, index=False)
 
 
-def export_report(base: Path, picks: pd.DataFrame, config: Dict) -> None:
+def export_report(base: Path, picks: pd.DataFrame, config: Dict, sell_signals: pd.DataFrame | None = None) -> None:
+    sell_signals = sell_signals if sell_signals is not None else pd.DataFrame()
     report_path = base / config["output_report_md"]
     risk_budget = float(config["capital_jpy"]) * float(config["risk_per_trade"])
 
@@ -237,16 +349,26 @@ def export_report(base: Path, picks: pd.DataFrame, config: Dict) -> None:
     if picks.empty:
         lines.extend(
             [
-                "## Candidates",
+                "## BUY Candidates",
                 "",
-                "No trade candidates met the minimum probability threshold today.",
+                "No new BUY candidates met the minimum probability threshold today.",
             ]
         )
     else:
-        lines.extend(["## Candidates", "", "| Code | Name | Prob | Qty | Entry | Stop | TP | MaxLoss |", "|---|---|---:|---:|---:|---:|---:|---:|"])
+        lines.extend(["## BUY Candidates", "", "| Code | Name | Prob | Qty | Entry | Stop | TP | MaxLoss |", "|---|---|---:|---:|---:|---:|---:|---:|"])
         for _, p in picks.iterrows():
             lines.append(
                 f"| {p['code']} | {p['name']} | {p['probability']:.3f} | {int(p['qty'])} | {p['entry_price']:.1f} | {p['stop_price']:.1f} | {p['take_profit_price']:.1f} | {p['estimated_max_loss']:.0f} |"
+            )
+
+    lines.extend(["", "## SELL Signals", ""])
+    if sell_signals.empty:
+        lines.append("No SELL signals for current OPEN positions today.")
+    else:
+        lines.extend(["| Code | Name | Qty | ExitRef | DaysHeld | RSI14 | Trigger |", "|---|---|---:|---:|---:|---:|---|"])
+        for _, s in sell_signals.iterrows():
+            lines.append(
+                f"| {s['code']} | {s['name']} | {int(s['qty'])} | {float(s['exit_price']):.1f} | {int(s['days_held'])} | {float(s['rsi14']):.1f} | {s['trigger']} |"
             )
 
     report_path.write_text("\n".join(lines), encoding="utf-8")

@@ -1,1 +1,97 @@
 timestamp,event,code,qty,status,message,run_mode
+2026-05-24T18:04:11+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-24T18:04:11+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-24T18:04:11+09:00,RUN_COMPLETE,,,OK,picks=0,once
+2026-05-24T18:16:26+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-24T18:16:26+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-24T18:16:26+09:00,RUN_COMPLETE,,,OK,picks=0,once
+2026-05-24T18:55:02+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-24T18:55:02+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-24T18:55:02+09:00,RUN_COMPLETE,,,OK,picks=0,once
+2026-05-25T07:45:02+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-25T07:45:02+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-25T07:45:02+09:00,RUN_COMPLETE,,,OK,picks=0,once
+2026-05-25T09:58:01+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-25T09:58:01+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-25T09:58:01+09:00,ORDER,6178,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T09:58:01+09:00,ORDER,1963,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T09:58:01+09:00,ORDER,6971,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T09:58:01+09:00,RUN_COMPLETE,,,OK,picks=3,once
+2026-05-25T10:16:23+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-25T10:16:23+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-25T10:16:23+09:00,ORDER,4005,200,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T10:16:23+09:00,ORDER,7201,400,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T10:16:23+09:00,ORDER,3401,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T10:16:23+09:00,RUN_COMPLETE,,,OK,picks=3,once
+2026-05-25T10:17:13+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-25T10:17:13+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-25T10:17:13+09:00,ORDER,4005,200,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T10:17:13+09:00,ORDER,7201,400,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T10:17:13+09:00,ORDER,3401,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T10:17:13+09:00,RUN_COMPLETE,,,OK,picks=3,once
+2026-05-25T10:34:10+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-25T10:34:10+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-25T10:34:10+09:00,ORDER,4005,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T10:34:10+09:00,ORDER,7201,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T10:34:10+09:00,RUN_COMPLETE,,,OK,picks=2,once
+2026-05-25T11:04:03+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-25T11:04:03+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-25T11:04:03+09:00,ORDER,4005,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T11:04:03+09:00,ORDER,7201,200,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T11:04:03+09:00,RUN_COMPLETE,,,OK,picks=2,once
+2026-05-25T11:22:50+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-25T11:22:50+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-25T11:22:50+09:00,ORDER,4005,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T11:22:50+09:00,ORDER,7201,200,QUEUED,side=BUY Queued for broker execution,once
+2026-05-25T11:22:50+09:00,RUN_COMPLETE,,,OK,picks=2,once
+2026-05-26T07:45:02+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-26T07:45:02+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-26T07:45:02+09:00,ORDER,4005,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-26T07:45:02+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-26T07:45:23+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-27T07:45:02+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-27T07:45:02+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-27T07:45:02+09:00,ORDER,4005,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-27T07:45:02+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-27T07:45:23+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-28T07:45:02+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-28T07:45:02+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-28T07:45:02+09:00,ORDER,4005,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-28T07:45:02+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-28T07:45:23+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-28T12:11:44+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-28T12:11:44+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-28T12:11:44+09:00,ORDER,7201,200,QUEUED,side=SELL Queued for broker execution,once
+2026-05-28T12:11:44+09:00,ORDER,4902,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-28T12:11:44+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-28T12:12:05+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-28T14:42:29+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-28T14:42:29+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-28T14:42:29+09:00,ORDER,7201,200,QUEUED,side=SELL Queued for broker execution,once
+2026-05-28T14:42:29+09:00,ORDER,4902,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-28T14:42:29+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-28T14:42:53+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-28T15:45:33+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-28T15:45:33+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-28T15:45:33+09:00,ORDER,7201,200,QUEUED,side=SELL Queued for broker execution,once
+2026-05-28T15:45:33+09:00,ORDER,4902,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-28T15:45:33+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-28T15:45:59+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-29T07:45:02+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-29T07:45:02+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-29T07:45:02+09:00,ORDER,7201,200,QUEUED,side=SELL Queued for broker execution,once
+2026-05-29T07:45:02+09:00,ORDER,4902,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-29T07:45:02+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-29T07:45:28+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-29T09:34:27+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-29T09:34:27+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-29T09:34:27+09:00,ORDER,7201,200,QUEUED,side=SELL Queued for broker execution,once
+2026-05-29T09:34:27+09:00,ORDER,4902,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-29T09:34:27+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-29T09:34:47+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-31T13:02:39+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-31T13:02:39+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-31T13:02:39+09:00,ORDER,7201,200,QUEUED,side=SELL Queued for broker execution,once
+2026-05-31T13:02:39+09:00,ORDER,4902,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-31T13:02:39+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-31T13:03:01+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,

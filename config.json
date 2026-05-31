@@ -1,8 +1,9 @@
 {
-  "capital_jpy": 1000000,
+  "capital_jpy": 300000,
   "risk_per_trade": 0.007,
   "daily_loss_limit_jpy": 20000,
   "max_new_positions_per_day": 3,
+  "max_total_open_positions": 2,
   "holding_days_max": 10,
   "min_holding_days": 2,
   "stop_loss_pct": 0.02,
@@ -19,6 +20,11 @@
   "kill_switch_file": "KILL_SWITCH",
   "output_orders_csv": "orders_for_sbi.csv",
   "output_report_md": "daily_report.md",
+  "line_messaging": {
+    "enabled": true,
+    "channel_token_env": "LINE_CHANNEL_ACCESS_TOKEN",
+    "to_env": "LINE_TO_ID"
+  },
   "sbi_env": {
     "user": "SBI_USER",
     "password": "SBI_PASSWORD",
