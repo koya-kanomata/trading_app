@@ -95,3 +95,9 @@ timestamp,event,code,qty,status,message,run_mode
 2026-05-31T13:02:39+09:00,ORDER,4902,100,QUEUED,side=BUY Queued for broker execution,once
 2026-05-31T13:02:39+09:00,RUN_COMPLETE,,,OK,picks=1,once
 2026-05-31T13:03:01+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,
+2026-05-31T13:15:35+09:00,SBI_COLLECT,,,OK,found=0 copied=0 skipped=0,once
+2026-05-31T13:15:35+09:00,SBI_SYNC,,,OK,imported=none,once
+2026-05-31T13:15:35+09:00,ORDER,7201,200,QUEUED,side=SELL Queued for broker execution,once
+2026-05-31T13:15:35+09:00,ORDER,4902,100,QUEUED,side=BUY Queued for broker execution,once
+2026-05-31T13:15:35+09:00,RUN_COMPLETE,,,OK,picks=1,once
+2026-05-31T13:15:57+09:00,LINE_MSG_SKIP,,,SKIPPED,Missing env token=LINE_CHANNEL_ACCESS_TOKEN to=LINE_TO_ID,

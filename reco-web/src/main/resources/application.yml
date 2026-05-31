@@ -11,5 +11,7 @@ trading:
   orders-csv: orders_for_sbi.csv
   report-md: daily_report.md
   audit-log-csv: audit_log.csv
+  positions-csv: positions.csv
+  fills-csv: fills.csv
   schedule-cron: "0 45 7 * * MON-FRI"
   schedule-zone: "Asia/Tokyo"

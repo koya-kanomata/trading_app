@@ -23,6 +23,12 @@ public class TradingProperties {
     private String auditLogCsv;
 
     @NotBlank
+    private String positionsCsv;
+
+    @NotBlank
+    private String fillsCsv;
+
+    @NotBlank
     private String scheduleCron;
 
     @NotBlank
@@ -66,6 +72,22 @@ public class TradingProperties {
 
     public void setAuditLogCsv(String auditLogCsv) {
         this.auditLogCsv = auditLogCsv;
+    }
+
+    public String getPositionsCsv() {
+        return positionsCsv;
+    }
+
+    public void setPositionsCsv(String positionsCsv) {
+        this.positionsCsv = positionsCsv;
+    }
+
+    public String getFillsCsv() {
+        return fillsCsv;
+    }
+
+    public void setFillsCsv(String fillsCsv) {
+        this.fillsCsv = fillsCsv;
     }
 
     public String getScheduleCron() {

@@ -217,7 +217,12 @@ If CLI/CSV operation feels hard, use the web dashboard:
 - Shows daily recommendations from `orders_for_sbi.csv`
 - Displays BUY/SELL tables with code, qty, limit, stop
 - Supports manual run button (`auto_trader.py --once`)
+- Includes a trade-entry form to record executed BUY/SELL directly into `fills.csv` and `positions.csv`
 - Runs daily by scheduler at 07:45 JST
+
+Pages:
+- `/` : Recommendation dashboard (BUY/SELL list, manual recalc)
+- `/trades/new` : Trade entry page (record executed BUY/SELL)
 
 ### Start
 

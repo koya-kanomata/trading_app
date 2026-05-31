@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>約定入力 | Trading Dashboard</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<main class="container">
+    <section class="hero">
+        <h1>約定入力ページ</h1>
+        <p>購入・売却した約定を入力すると、positions/fillsへ反映されます。</p>
+        <div class="meta">
+            <a class="link-btn" th:href="@{/}">ダッシュボードへ戻る</a>
+        </div>
+    </section>
+
+    <section th:if="${message}" class="alert ok" th:text="${message}"></section>
+    <section th:if="${error}" class="alert ng" th:text="${error}"></section>
+
+    <section class="panel">
+        <h2>約定を記録（CSV手入力不要）</h2>
+        <form class="trade-form" th:action="@{/trades}" th:object="${tradeForm}" method="post">
+            <label>
+                取引日 (YYYY-MM-DD)
+                <input th:field="*{tradeDate}" placeholder="2026-05-31">
+            </label>
+            <label>
+                銘柄コード
+                <input th:field="*{code}" placeholder="4005" required>
+                <small class="error-msg" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></small>
+            </label>
+            <label>
+                銘柄名 (任意)
+                <input th:field="*{name}" placeholder="Sumitomo Chemical">
+            </label>
+            <label>
+                売買区分
+                <select th:field="*{side}">
+                    <option value="BUY">BUY</option>
+                    <option value="SELL">SELL</option>
+                </select>
+                <small class="error-msg" th:if="${#fields.hasErrors('side')}" th:errors="*{side}"></small>
+            </label>
+            <label>
+                株数
+                <input th:field="*{qty}" type="number" min="1" step="1" required>
+                <small class="error-msg" th:if="${#fields.hasErrors('qty')}" th:errors="*{qty}"></small>
+            </label>
+            <label>
+                約定価格
+                <input th:field="*{price}" type="number" min="0.01" step="0.1" required>
+                <small class="error-msg" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></small>
+            </label>
+            <label>
+                実現損益 (SELL時)
+                <input th:field="*{realizedPnlJpy}" type="number" step="1" placeholder="-640">
+            </label>
+            <div class="trade-form-actions">
+                <button type="submit">約定を記録</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

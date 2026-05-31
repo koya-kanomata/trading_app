@@ -56,6 +56,16 @@ button {
     font-weight: 700;
 }
 
+.link-btn {
+    display: inline-block;
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    background: #fff7d6;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
 .alert {
     margin-top: 14px;
     border-radius: 10px;
@@ -84,6 +94,38 @@ button {
 
 .panel h2 {
     margin: 10px 8px;
+}
+
+.trade-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 12px;
+    padding: 8px;
+}
+
+.trade-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: #3a3a3a;
+}
+
+.trade-form input,
+.trade-form select {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+}
+
+.trade-form-actions {
+    grid-column: 1 / -1;
+}
+
+.error-msg {
+    color: var(--ng);
+    font-size: 12px;
 }
 
 table {
@@ -115,5 +157,9 @@ th {
     th, td {
         font-size: 12px;
         padding: 8px;
+    }
+
+    .trade-form {
+        grid-template-columns: 1fr;
     }
 }
