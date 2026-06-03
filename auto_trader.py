@@ -55,7 +55,10 @@ def load_open_positions(base: Path, config: Dict) -> pd.DataFrame:
 def today_realized_pnl(base: Path, config: Dict, now: datetime) -> float:
     path = base / str(config["fills_csv"])
     ensure_csv(path, ["fill_date", "code", "side", "qty", "price", "realized_pnl_jpy"])
-    df = pd.read_csv(path, dtype={"code": str})
+    try:
+        df = pd.read_csv(path, dtype={"code": str}, engine="python", on_bad_lines="skip")
+    except pd.errors.ParserError:
+        df = pd.DataFrame(columns=["fill_date", "code", "side", "qty", "price", "realized_pnl_jpy"])
     if df.empty or "realized_pnl_jpy" not in df.columns:
         return 0.0
 

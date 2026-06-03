@@ -25,6 +25,35 @@
     <section th:if="${loadError}" class="alert ng" th:text="${loadError}"></section>
 
     <section class="panel">
+        <h2>取引中ポジション</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>株数</th>
+                <th>平均取得単価</th>
+                <th>建玉日</th>
+                <th>状態</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(openPositions)}">
+                <td colspan="6">取引中ポジションはありません</td>
+            </tr>
+            <tr th:each="p : ${openPositions}">
+                <td th:text="${p.code}"></td>
+                <td th:text="${p.name}"></td>
+                <td th:text="${p.qty}"></td>
+                <td th:text="${p.entryPrice}"></td>
+                <td th:text="${p.entryDate}"></td>
+                <td th:text="${p.status}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel">
         <h2>BUY 提案</h2>
         <table>
             <thead>

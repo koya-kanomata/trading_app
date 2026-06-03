@@ -16,7 +16,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class TradeJournalService {
@@ -26,6 +28,28 @@ public class TradeJournalService {
 
     public TradeJournalService(TradingProperties properties) {
         this.properties = properties;
+    }
+
+    public List<OpenPositionRow> loadOpenPositions() throws IOException {
+        Path positionsPath = Path.of(properties.getBaseDir(), properties.getPositionsCsv());
+        if (!Files.exists(positionsPath)) {
+            return List.of();
+        }
+
+        List<PositionRow> rows = loadPositions(positionsPath);
+        return rows.stream()
+                .filter(r -> "OPEN".equalsIgnoreCase(r.status))
+                .filter(r -> r.qty > 0)
+                .sorted(Comparator.comparing(r -> r.code))
+                .map(r -> new OpenPositionRow(
+                        r.code,
+                        r.name,
+                        r.qty,
+                        String.format(Locale.US, "%.4f", r.entryPrice),
+                        r.entryDate,
+                        r.status
+                ))
+                .toList();
     }
 
     public void recordTrade(TradeEntryForm form) throws IOException {

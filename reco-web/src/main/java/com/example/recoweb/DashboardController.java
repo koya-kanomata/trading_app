@@ -87,11 +87,13 @@ public class DashboardController {
     private void loadDashboard(Model model) {
         try {
             RecommendationSnapshot snapshot = recommendationService.loadSnapshot();
+            model.addAttribute("openPositions", tradeJournalService.loadOpenPositions());
             model.addAttribute("buyRows", snapshot.buyRows());
             model.addAttribute("sellRows", snapshot.sellRows());
             model.addAttribute("lastUpdated", snapshot.lastUpdated() == null ? "-" : TS_FORMAT.format(snapshot.lastUpdated()));
         } catch (IOException ex) {
             model.addAttribute("loadError", ex.getMessage());
+            model.addAttribute("openPositions", java.util.List.of());
             model.addAttribute("buyRows", java.util.List.of());
             model.addAttribute("sellRows", java.util.List.of());
             model.addAttribute("lastUpdated", "-");
